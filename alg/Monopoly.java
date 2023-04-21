@@ -118,17 +118,149 @@ public class Monopoly {
         table.add(new EnumMap<>(Space.class));
         table.get(0).put(Space.START, 1.0);
 
-        /* ... */
+        for (int i = 1; i <= turn; i++) {
+            Map<Space, Double> currentTurn = new EnumMap<>(Space.class);
+            for (Space s : Space.values()) {
+                double p = 0.0;
+                for (int d1 = 1; d1 <= 6; d1++) {
+                    for (int d2 = 1; d2 <= 6; d2++) {
+                        if (d1 + d2 == 2) {  // dubbel 1 -> naar gevangenis
+                            update(table, i, Space.GEVANGENIS, diceOdds(d1 + d2));
+                        } else if (i == turn && s == space) {
+                            p += diceOdds(d1 + d2, d1 == d2);
+                        } else {
+                            Space next = s;
+                            int doubles = 0;
+                            if (d1 == d2) doubles++;
+                            next = Space.byPosition(s.position + d1 + d2);
+                            if (next == Space.NAAR_DE_GEVANGENIS) {
+                                next = Space.GEVANGENIS;
+                                doubles = 0;
+                            }
+                            p += diceOdds(d1 + d2, doubles == 1) * table.get(i-1).getOrDefault(next, 0.0);
+                        }
+                    }
+                }
+                if (s == Space.GEVANGENIS && i < turn) {  // de gevangenis overslaan als niet op bezoek
+                    update(table, i+2, Space.OP_BEZOEK, p);
+                } else {
+                    update(table, i, s, p);
+                }
+            }
+            table.add(currentTurn);
+        }
 
         return table.get(turn).getOrDefault(space, 0.0);
     }
 
     public double chanceToVisitB(Space space, int turn) {
-        /* ... */
+        List<Map<Space, Double>> table = new ArrayList<>(turn + 1);
+        table.add(new EnumMap<>(Space.class));
+        table.get(0).put(Space.START, 1.0);
+
+        for (int i = 1; i <= turn; i++) {
+            Map<Space, Double> currentTurn = new EnumMap<>(Space.class);
+            for (Space s : Space.values()) {
+                double p = 0.0;
+                if (s == Space.GEVANGENIS) {  // zit al in de gevangenis
+                    for (int d1 = 1; d1 <= 6; d1++) {
+                        for (int d2 = 1; d2 <= 6; d2++) {
+                            if (d1 == d2) {  // dubbel gegooid, uit de gevangenis
+                                Space next = Space.byPosition(s.position + d1 + d2);
+                                if (next == Space.NAAR_DE_GEVANGENIS) {
+                                    next = Space.GEVANGENIS;
+                                }
+                                update(table, i, next, diceOdds(d1 + d2, true));
+                            } else {  // niet dubbel gegooid, blijft in de gevangenis
+                                update(table, i, s, diceOdds(d1 + d2, false));
+                            }
+                        }
+                    }
+                } else {  // niet in de gevangenis
+                    for (int d1 = 1; d1 <= 6; d1++) {
+                        for (int d2 = 1; d2 <= 6; d2++) {
+                            if (d1 + d2 == 2) {  // dubbel 1 -> naar gevangenis
+                                update(table, i, Space.GEVANGENIS, diceOdds(d1 + d2));
+                            } else if (i == turn && s == space) {
+                                p += diceOdds(d1 + d2, d1 == d2);
+                            } else {
+                                Space next = s;
+                                int doubles = 0;
+                                if (d1 == d2) doubles++;
+                                next = Space.byPosition(s.position + d1 + d2);
+                                if (next == Space.NAAR_DE_GEVANGENIS) {
+                                    next = Space.GEVANGENIS;
+                                    doubles = 0;
+                                }
+                                p += diceOdds(d1 + d2, doubles == 1) * table.get(i-1).getOrDefault(next, 0.0);
+                            }
+                        }
+                    }
+                    if (s == Space.GEVANGENIS && i < turn) {  // de gevangenis overslaan als niet op bezoek
+                        update(table, i+2, Space.OP_BEZOEK, p);
+                    } else {
+                        update(table, i, s, p);
+                    }
+                }
+            }
+            table.add(currentTurn);
+        }
+
+        return table.get(turn).getOrDefault(space, 0.0);
     }
 
     public double chanceToVisitC(Space space, int turn) {
-        /* ... */
+        List<Map<Space, Double>> table = new ArrayList<>(turn + 1);
+        table.add(new EnumMap<>(Space.class));
+        table.get(0).put(Space.START, 1.0);
+
+        for (int i = 1; i <= turn; i++) {
+            Map<Space, Double> currentTurn = new EnumMap<>(Space.class);
+            for (Space s : Space.values()) {
+                double p = 0.0;
+                for (int d1 = 1; d1 <= 6; d1++) {
+                    for (int d2 = 1; d2 <= 6; d2++) {
+                        if (d1 + d2 == 2) {  // dubbel 1 -> naar gevangenis
+                            update(table, i, Space.GEVANGENIS, diceOdds(d1 + d2));
+                        } else if (i == turn && s == space) {
+                            p += diceOdds(d1 + d2, d1 == d2);
+                        } else {
+                            Space next = s;
+                            int doubles = 0;
+                            if (d1 == d2) doubles++;
+                            if (next == Space.GEVANGENIS) {
+                                if (doubles == 1 && i >= 3) {
+                                    next = Space.OP_BEZOEK;
+                                } else if (doubles == 2) {
+                                    next = Space.GEVANGENIS;
+                                }
+                            } else {
+                                next = Space.byPosition(s.position + d1 + d2);
+                                if (next == Space.NAAR_DE_GEVANGENIS) {
+                                    next = Space.GEVANGENIS;
+                                    doubles = 0;
+                                }
+                            }
+                            p += diceOdds(d1 + d2, doubles == 1) * table.get(i-1).getOrDefault(next, 0.0);
+                        }
+                    }
+                }
+                if (s == Space.GEVANGENIS) {
+                    if (i == 1) {  // eerste beurt na gevangenis -> altijd dubbel
+                        update(table, i + 1, Space.GEVANGENIS, p);
+                    } else if (i == turn) {  // laatste beurt -> geen bezoek mogelijk
+                        update(table, i, s, p);
+                    } else {  // andere beurten -> kans op op bezoek gaan
+                        update(table, i + 1, Space.OP_BEZOEK, p);
+                    }
+                } else {
+                    update(table, i, s, p);
+                }
+            }
+            table.add(currentTurn);
+        }
+
+        return table.get(turn).getOrDefault(space, 0.0);
     }
 
     private static void assertDouble(double expected, double actual) {
