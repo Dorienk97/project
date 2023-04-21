@@ -273,47 +273,78 @@ public class TwoFourTree1<K extends Comparable<K>> {
      * @return The old value that was stored in the node, if it was already present, or null.
      */
     public K add(K value) {
-        if (root.isExternal()) {
-        root = new Node<>(value, new Node<>(), new Node<>());
-        return null;
-    }
-    Node<K> currentNode = root;
-    while (!currentNode.isExternal()) {
-        if (currentNode.contains(value)) {
-            return currentNode.replaceValue(value);
+        Node<K> node = root;
+
+    // Find the leaf node where the value should be inserted.
+    while (!node.isExternal()) {
+        Pair<K> pair = node.pairs.get(0);
+        if (value == null || value.compareTo(pair.value) < 0) {
+            node = pair.child;
+        } else {
+            int i = node.pairs.size() - 1;
+            pair = node.pairs.get(i);
+            while (pair.value == null) {
+                pair = node.pairs.get(--i);
+            }
+            if (value.compareTo(pair.value) > 0) {
+                node = node.pairs.get(i + 1).child;
+            } else {
+                for (Pair<K> p : node.pairs) {
+                    if (p.value != null && value.compareTo(p.value) == 0) {
+                        return p.value;
+                    }
+                }
+                node = node.findChildByValue(value);
+            }
         }
-        currentNode = currentNode.findChildByValue(value);
     }
 
-    currentNode.insert(value, null);
+    // Insert the value into the leaf node.
+    node.insert(value, null);
 
-    while (currentNode.size() > 4) {
-        int middle = (currentNode.size() - 1) / 2;
-        K middleValue = currentNode.getValue(middle);
+    // Split the node if necessary.
+    while (node.pairs.size() > 3) {
+        int middle = node.pairs.size() / 2;
+        K middleValue = node.pairs.get(middle).value;
         Node<K> left = new Node<>();
         Node<K> right = new Node<>();
 
         for (int i = 0; i < middle; i++) {
-            left.insert(currentNode.getValue(i), currentNode.getChild(i));
+            Pair<K> p = node.pairs.get(i);
+            left.pairs.add(p);
+            if (!p.child.isExternal()) {
+                p.child.parent = left;
+            }
         }
-        left.insert(null, currentNode.getChild(middle));
-
-        for (int i = middle + 1; i < currentNode.size() - 1; i++) {
-            right.insert(currentNode.getValue(i), currentNode.getChild(i));
+        left.pairs.add(new Pair<>(null, node.pairs.get(middle).child));
+        if (!node.pairs.get(middle).child.isExternal()) {
+            node.pairs.get(middle).child.parent = left;
         }
-        right.insert(null, currentNode.getChild(currentNode.size() - 1));
 
-        if (currentNode.parent == null) {
+        for (int i = middle + 1; i < node.pairs.size(); i++) {
+            Pair<K> p = node.pairs.get(i);
+            right.pairs.add(p);
+            if (!p.child.isExternal()) {
+                p.child.parent = right;
+            }
+        }
+        right.pairs.add(new Pair<>(null, node.pairs.get(node.pairs.size() - 1).child));
+        if (!node.pairs.get(node.pairs.size() - 1).child.isExternal()) {
+            node.pairs.get(node.pairs.size() - 1).child.parent = right;
+        }
+
+        if (node.parent == null) {
             root = new Node<>(middleValue, left, right);
             break;
         } else {
-            currentNode = currentNode.parent;
-            int indexOfMiddleValue = currentNode.insert(middleValue, left);
-            currentNode.replaceChild(indexOfMiddleValue + 1, right);
+            int index = node.parent.insert(middleValue, left);
+            node.parent.replaceChild(index + 1, right);
+            node = node.parent;
         }
     }
+
     return null;
-    }
+}
 
     
     /**
