@@ -1,8 +1,7 @@
 import java.util.LinkedList;
 import java.util.List;
 
-public class TwoFourTree<K extends Comparable<K>> {
-
+public class TwoFourTree1<K extends Comparable<K>> {
     private static class Pair<K extends Comparable<K>> {
         private K value;
         private Node<K> child;
@@ -12,7 +11,6 @@ public class TwoFourTree<K extends Comparable<K>> {
             this.child = child;
         }
     }
-
     private static class Node<K extends Comparable<K>> {
         /**
          * Pairs of elements in the node, with the corresponding child. The child
@@ -272,7 +270,11 @@ public class TwoFourTree<K extends Comparable<K>> {
      * @return The old value that was stored in the node, if it was already present, or null.
      */
     public K add(K value) {
-        Node<K> currentNode = root;
+        if (root.isExternal()) {
+        root = new Node<>(value, new Node<>(), new Node<>());
+        return null;
+    }
+    Node<K> currentNode = root;
     while (!currentNode.isExternal()) {
         if (currentNode.contains(value)) {
             return currentNode.replaceValue(value);
@@ -307,53 +309,10 @@ public class TwoFourTree<K extends Comparable<K>> {
             currentNode.replaceChild(indexOfMiddleValue + 1, right);
         }
     }
-
     return null;
     }
 
-    /**
-     * Convert a node to a Red-Black representation.
-     * @param node The node to convert.
-     * @return The Red-Black representation of the node.
-     */
-    // private RedBlackTree<K> convertToRedBlackTree(Node<K> node) {
-    //     if (node == null) {
-    //         return null;
-    //     }
-
-    //     if (node.isLeaf()) {
-    //         return new RedBlackTree<K>(node.getKey(), RedBlackTree.Color.BLACK, null, null);
-    //     }
-
-    //     List<RedBlackTree<K>> children = new LinkedList<>();
-    //     for (Node<K> child : node.getChildren()) {
-    //         children.add(convertToRedBlackTree(child));
-    //     }
-
-    //     RedBlackTree<K> root = new RedBlackTree<K>(node.getKey(), RedBlackTree.Color.BLACK, children.get(0), children.get(1));
-    //     if (children.size() > 2) {
-    //         root.right = children.get(2);
-    //     }
-    //     if (children.size() > 3) {
-    //         RedBlackTree<K> rightChild = children.get(3);
-    //         RedBlackTree<K> newRight = new RedBlackTree<K>(rightChild.element, RedBlackTree.Color.RED, rightChild.left, rightChild.right);
-    //         root.right.right = newRight;
-    //         newRight.parent = root.right;
-    //     }
-
-    //     return root;
-
-    // }
-
-    /**
-     * Convert this tree to a Red-Black representation.
-     * @return The Red-Black representation of the tree.
-     */
-    // public RedBlackTree<K> convertToRedBlackTree() {
-    //     return convertToRedBlackTree(root);
-    // }
-
-
+    
     /**
      * Verify the invariants for the 2-4 tree.
      */
@@ -369,10 +328,21 @@ public class TwoFourTree<K extends Comparable<K>> {
     }
 
     public static void main(String[] args) {
-        TwoFourTree<Integer> tree = new TwoFourTree<>();
+        TwoFourTree1<Integer> tree = new TwoFourTree1<>();
 
+        // try {
+        //     for (int n : new int[] {5, 3, 7, 6, 1, 2, 9, 8, 10, 12, 11, 13}) {
+        //         tree.add(n);
+        //         tree.verifyInvariants();
+        //         System.out.println(tree);
+        //     }
+        // } catch (Exception ex) {
+        //     ex.printStackTrace(System.err);
+        // }
+        // expected: [[[[] 1 [] 2 []] 3 [[] 5 []] 6 [[] 7 [] 8 []]] 9 [[[] 10 [] 11 []] 12 [[] 13 []]]]
+            
         try {
-            for (int n : new int[] {5, 3, 7, 6, 1, 2, 9, 8, 10, 12, 11, 13}) {
+            for (int n : new int[] {5, 3, 7, 6, 1, 2, 9, 8, 10}) {
                 tree.add(n);
                 tree.verifyInvariants();
                 System.out.println(tree);
@@ -380,15 +350,5 @@ public class TwoFourTree<K extends Comparable<K>> {
         } catch (Exception ex) {
             ex.printStackTrace(System.err);
         }
-        // expected: [[[[] 1 [] 2 []] 3 [[] 5 []] 6 [[] 7 [] 8 []]] 9 [[[] 10 [] 11 []] 12 [[] 13 []]]]
-
-        // try {
-        //     RedBlackTree<Integer> rb = tree.convertToRedBlackTree();
-        //     rb.verifyInvariants();
-        //     System.out.println(rb);
-        // } catch (Exception ex) {
-        //     ex.printStackTrace(System.err);
-        // }
-        // expected (example): [[[[] 1 <[] 2 []>] 3 <[[] 5 []] 6 [[] 7 <[] 8 []>]>] 9 [[[] 10 <[] 11 []>] 12 [[] 13 []]]]
     }
 }
