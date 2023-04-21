@@ -2,6 +2,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class TwoFourTree<K extends Comparable<K>> {
+
+
+
     private static class Pair<K extends Comparable<K>> {
         private K value;
         private Node<K> child;
@@ -11,6 +14,7 @@ public class TwoFourTree<K extends Comparable<K>> {
             this.child = child;
         }
     }
+
     private static class Node<K extends Comparable<K>> {
         /**
          * Pairs of elements in the node, with the corresponding child. The child
@@ -266,7 +270,43 @@ public class TwoFourTree<K extends Comparable<K>> {
      * @return The old value that was stored in the node, if it was already present, or null.
      */
     public K add(K value) {
-        /* ... */
+        Node<K> currentNode = root;
+        while (!currentNode.isExternal) {
+            if (currentNode.contains(value)) {
+                return currentNode.replaceValue(value);
+            }
+            currentNode = currentNode.findChildByValue(value);
+        }
+
+        currentNode.insert(value, null);
+
+        while (currentNode.size() > 4) {
+            int middle = currentNode.size() / 2;
+            K middleValue = currentNode.getValue(middle);
+            Node<K> left = new Node<>();
+            Node<K> right = new Node<>();
+
+            for (int i = 0; i < middle; i++) {
+                left.insert(currentNode.getValue(i), currentNode.getChild(i));
+            }
+            left.insert(null, currentNode.getChild(middle));
+
+            for (int i = middle + 1; i < currentNode.size() - 1; i++) {
+                right.insert(currentNode.getValue(i), currentNode.getChild(i));
+            }
+            right.insert(null, currentNode.getChild(currentNode.size() - 1));
+
+            if (currentNode.parent == null) {
+                root = new Node<>(middleValue, left, right);
+                break;
+            } else {
+                currentNode = currentNode.parent;
+                currentNode.replaceChild(currentNode.indexOfChild(middleValue), left);
+                currentNode.insert(middleValue, right);
+            }
+        }
+
+        return null;
     }
 
     /**
