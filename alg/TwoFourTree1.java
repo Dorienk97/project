@@ -86,6 +86,9 @@ public class TwoFourTree1<K extends Comparable<K>> {
          * @return Index of inserted value.
          */
         int insert(K value, Node<K> child) {
+            if (child == null) {
+                child = new Node<>();
+            }
             Pair<K> pair = new Pair<>(value, child);
             int i = 0;
             if (pair.child != null) {
