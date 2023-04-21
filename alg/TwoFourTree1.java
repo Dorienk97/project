@@ -275,73 +275,73 @@ public class TwoFourTree1<K extends Comparable<K>> {
     public K add(K value) {
         Node<K> node = root;
 
-    // Find the leaf node where the value should be inserted.
-    while (!node.isExternal()) {
-        Pair<K> pair = node.pairs.get(0);
-        if (value == null || value.compareTo(pair.value) < 0) {
-            node = pair.child;
-        } else {
-            int i = node.pairs.size() - 1;
-            pair = node.pairs.get(i);
-            while (pair.value == null) {
-                pair = node.pairs.get(--i);
-            }
-            if (value.compareTo(pair.value) > 0) {
-                node = node.pairs.get(i + 1).child;
+        // Find the leaf node where the value should be inserted.
+        while (!node.isExternal()) {
+            Pair<K> pair = node.pairs.get(0);
+            if (value == null || value.compareTo(pair.value) < 0) {
+                node = pair.child;
             } else {
-                for (Pair<K> p : node.pairs) {
-                    if (p.value != null && value.compareTo(p.value) == 0) {
-                        return p.value;
-                    }
+                int i = node.pairs.size() - 1;
+                pair = node.pairs.get(i);
+                while (pair.value == null) {
+                    pair = node.pairs.get(--i);
                 }
-                node = node.findChildByValue(value);
+                if (value.compareTo(pair.value) > 0) {
+                    node = node.pairs.get(i + 1).child;
+                } else {
+                    for (Pair<K> p : node.pairs) {
+                        if (p.value != null && value.compareTo(p.value) == 0) {
+                            return p.value;
+                        }
+                    }
+                    node = node.findChildByValue(value);
+                }
             }
         }
-    }
 
-    // Insert the value into the leaf node.
-    node.insert(value, null);
+        // Insert the value into the leaf node.
+        node.insert(value, null);
 
-    // Split the node if necessary.
-    while (node.pairs.size() > 3) {
-        int middle = node.pairs.size() / 2;
-        K middleValue = node.pairs.get(middle).value;
-        Node<K> left = new Node<>();
-        Node<K> right = new Node<>();
+        // Split the node if necessary.
+        while (node.pairs.size() > 3) {
+            int middle = node.pairs.size() / 2;
+            K middleValue = node.pairs.get(middle).value;
+            Node<K> left = new Node<>();
+            Node<K> right = new Node<>();
 
-        for (int i = 0; i < middle; i++) {
-            Pair<K> p = node.pairs.get(i);
-            left.pairs.add(p);
-            if (!p.child.isExternal()) {
-                p.child.parent = left;
+            for (int i = 0; i < middle; i++) {
+                Pair<K> p = node.pairs.get(i);
+                left.pairs.add(p);
+                if (!p.child.isExternal()) {
+                    p.child.parent = left;
+                }
+            }
+            left.pairs.add(new Pair<>(null, node.pairs.get(middle).child));
+            if (!node.pairs.get(middle).child.isExternal()) {
+                node.pairs.get(middle).child.parent = left;
+            }
+
+            for (int i = middle + 1; i < node.pairs.size(); i++) {
+                Pair<K> p = node.pairs.get(i);
+                right.pairs.add(p);
+                if (!p.child.isExternal()) {
+                    p.child.parent = right;
+                }
+            }
+            right.pairs.add(new Pair<>(null, node.pairs.get(node.pairs.size() - 1).child));
+            if (!node.pairs.get(node.pairs.size() - 1).child.isExternal()) {
+                node.pairs.get(node.pairs.size() - 1).child.parent = right;
+            }
+
+            if (node.parent == null) {
+                root = new Node<>(middleValue, left, right);
+                break;
+            } else {
+                int index = node.parent.insert(middleValue, left);
+                node.parent.replaceChild(index + 1, right);
+                node = node.parent;
             }
         }
-        left.pairs.add(new Pair<>(null, node.pairs.get(middle).child));
-        if (!node.pairs.get(middle).child.isExternal()) {
-            node.pairs.get(middle).child.parent = left;
-        }
-
-        for (int i = middle + 1; i < node.pairs.size(); i++) {
-            Pair<K> p = node.pairs.get(i);
-            right.pairs.add(p);
-            if (!p.child.isExternal()) {
-                p.child.parent = right;
-            }
-        }
-        right.pairs.add(new Pair<>(null, node.pairs.get(node.pairs.size() - 1).child));
-        if (!node.pairs.get(node.pairs.size() - 1).child.isExternal()) {
-            node.pairs.get(node.pairs.size() - 1).child.parent = right;
-        }
-
-        if (node.parent == null) {
-            root = new Node<>(middleValue, left, right);
-            break;
-        } else {
-            int index = node.parent.insert(middleValue, left);
-            node.parent.replaceChild(index + 1, right);
-            node = node.parent;
-        }
-    }
 
     return null;
 }
