@@ -315,32 +315,32 @@ public class TwoFourTree<K extends Comparable<K>> {
      * @return The Red-Black representation of the node.
      */
     private RedBlackTree<K> convertToRedBlackTree(Node<K> node) {
-        /* remove this method body */
-        if (node.isExternal) {
-            return new RedBlackTree<>(null, RedBlackTree.Color.BLACK, null, null);
-        } else if (node.pairs.size() == 2) {
-            return new RedBlackTree<>(node.pairs.get(0).value, RedBlackTree.Color.BLACK,
-                    convertToRedBlackTree(node.pairs.get(0).child),
-                    convertToRedBlackTree(node.pairs.get(1).child));
-        } else if (node.pairs.size() == 3) {
-            return new RedBlackTree<>(node.pairs.get(0).value, RedBlackTree.Color.BLACK,
-                    convertToRedBlackTree(node.pairs.get(0).child),
-                    new RedBlackTree<>(node.pairs.get(1).value, RedBlackTree.Color.RED,
-                        convertToRedBlackTree(node.pairs.get(1).child),
-                        convertToRedBlackTree(node.pairs.get(2).child)
-                    ));
-        } else if (node.pairs.size() == 4) {
-            return new RedBlackTree<>(node.pairs.get(1).value, RedBlackTree.Color.BLACK,
-                    new RedBlackTree<>(node.pairs.get(0).value, RedBlackTree.Color.RED,
-                            convertToRedBlackTree(node.pairs.get(0).child),
-                            convertToRedBlackTree(node.pairs.get(1).child)
-                    ),
-                    new RedBlackTree<>(node.pairs.get(2).value, RedBlackTree.Color.RED,
-                            convertToRedBlackTree(node.pairs.get(2).child),
-                            convertToRedBlackTree(node.pairs.get(3).child)
-                    ));
+        if (node == null) {
+            return null;
         }
-        return null;
+
+        if (node.isLeaf()) {
+            return new RedBlackTree<K>(node.getKey(), RedBlackTree.Color.BLACK, null, null);
+        }
+
+        List<RedBlackTree<K>> children = new LinkedList<>();
+        for (Node<K> child : node.getChildren()) {
+            children.add(convertToRedBlackTree(child));
+        }
+
+        RedBlackTree<K> root = new RedBlackTree<K>(node.getKey(), RedBlackTree.Color.BLACK, children.get(0), children.get(1));
+        if (children.size() > 2) {
+            root.right = children.get(2);
+        }
+        if (children.size() > 3) {
+            RedBlackTree<K> rightChild = children.get(3);
+            RedBlackTree<K> newRight = new RedBlackTree<K>(rightChild.element, RedBlackTree.Color.RED, rightChild.left, rightChild.right);
+            root.right.right = newRight;
+            newRight.parent = root.right;
+        }
+
+        return root;
+
     }
 
     /**
